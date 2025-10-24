@@ -1,4 +1,4 @@
-# MenuTitle: Insert space glyph...
+# MenuTitle: Insert Space Glyphs...
 # -*- coding: utf-8 -*-
 from GlyphsApp import *
 from AppKit import NSAlert, NSTextField, NSMakeRect
@@ -48,7 +48,7 @@ def compute_space_widths(M):
         "emspace":         to_int(M),                # U+2003
     }
 
-def prompt_string(title="Ширина EM SPACE (U+2003)", default="1000", info="Введите ширину M space (em)."):
+def prompt_string(title="EM SPACE (U+2003) Width ", default="1000", info="Enter the width of Em space."):
     alert = NSAlert.alloc().init()
     alert.setMessageText_(title)
     alert.setInformativeText_(info)
