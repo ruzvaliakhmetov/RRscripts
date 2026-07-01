@@ -11,6 +11,7 @@ The scripts are provided as-is. Some of them are polished enough for regular use
 | Script                                               | Description                                                                                                                                       |
 | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `add_glyphs.py`                                      | Creates new glyphs from pasted text lines. Each non-empty line becomes a separate glyph name.                                                     |
+| `clear_selected.py`                                  | Clears the contents of selected glyphs on all layers while preserving their advance widths.                                                       |
 | `expand_outlines_for_selected_glyphs_master.py`      | Expands outlines for selected glyphs in the current master only.                                                                                  |
 | `expand_outlines_for_selected_glyphs_all_masters.py` | Expands outlines for selected glyphs across all masters.                                                                                          |
 | `export_SVG.py`                                      | Exports selected glyphs as SVG files with a 1000 × 1000 px artboard and selectable stroke line join / line cap settings.                          |
@@ -20,11 +21,13 @@ The scripts are provided as-is. Some of them are polished enough for regular use
 | `move_selected.py`                                   | Moves selected glyphs, or all glyphs in the current master, by a specified X/Y offset.                                                            |
 | `move_to_background.py`                              | Moves all foreground shapes and hints to the background layer.                                                                                    |
 | `scale_intersect.py`                                 | Scales paths that intersect with shapes in the background layer.                                                                                  |
+| `script_export_native.py`                            | Exports selected scripts through the native Glyphs export. Checked scripts are kept; all other scripts are added to `Remove Glyphs`.              |
+| `script_export_via_makefont.py`                      | Exports selected scripts through `fontmake`. Useful for script-specific OTF/TTF exports and clearer build logs outside the native Glyphs export.   |
 
 
 ## Requirements
 
-The variable TTF export script additionally requires `fontmake` to be installed and available on your system.
+The fontmake-based export scripts additionally require `fontmake` to be installed and available on your system.
 
 For example, using `pipx`:
 
