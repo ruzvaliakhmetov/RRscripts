@@ -70,20 +70,31 @@ class RemoveGlyphsSettings(object):
             selectionCallback=self.instanceSelectionChanged,
         )
 
-        self.w.scriptsBox = vanilla.Group((300, listTop, -margin, -70))
+        buttonSpacing = 8
+        closeBottom = margin
+        applyBottom = closeBottom + buttonHeight + buttonSpacing
+
+        self.w.scriptsBox = vanilla.Group(
+            (300, listTop, -margin, -(applyBottom + buttonHeight + 12))
+        )
 
         self.w.applyButton = vanilla.Button(
-            (-margin - buttonWidth, -58, buttonWidth, buttonHeight),
+            (-margin - buttonWidth, -(applyBottom + buttonHeight), buttonWidth, buttonHeight),
             "Apply",
             callback=self.applyCallback,
         )
         self.w.applyButton.enable(False)
 
         self.w.closeButton = vanilla.Button(
-            (-margin - buttonWidth, -26, buttonWidth, buttonHeight),
+            (-margin - buttonWidth, -(closeBottom + buttonHeight), buttonWidth, buttonHeight),
             "Close",
             callback=self.closeCallback,
         )
+
+        # Keep keyboard focus on the instances list so its selection
+        # stays highlighted in the accent color instead of inactive gray.
+        self.stopStealingFocus(self.w.applyButton)
+        self.stopStealingFocus(self.w.closeButton)
 
         self.buildScriptCheckboxes()
 
@@ -91,6 +102,7 @@ class RemoveGlyphsSettings(object):
         self.loadInstanceState()
 
         self.w.open()
+        self.focusInstancesList()
 
     # -------------------------
     # Collect data
@@ -195,6 +207,33 @@ class RemoveGlyphsSettings(object):
     # UI
     # -------------------------
 
+    def stopStealingFocus(self, control):
+        # Controls that refuse first responder status don't pull
+        # keyboard focus away from the instances list when clicked,
+        # so the list selection keeps its accent color.
+        try:
+            control.getNSButton().setRefusesFirstResponder_(True)
+        except Exception:
+            pass
+
+    def focusInstancesList(self):
+        # vanilla.FloatingWindow creates an NSPanel with
+        # becomesKeyOnlyIfNeeded enabled, so the panel never becomes
+        # the key window and the list selection is always drawn in
+        # inactive gray. Undo that so selection gets the accent color.
+        try:
+            panel = self.w.getNSWindow()
+            panel.setBecomesKeyOnlyIfNeeded_(False)
+            panel.makeKeyWindow()
+        except Exception:
+            pass
+
+        try:
+            tableView = self.w.instancesList.getNSTableView()
+            self.w.getNSWindow().makeFirstResponder_(tableView)
+        except Exception:
+            pass
+
     def buildScriptCheckboxes(self):
         y = 0
 
@@ -205,6 +244,7 @@ class RemoveGlyphsSettings(object):
                 value=False,
                 callback=self.checkboxChanged,
             )
+            self.stopStealingFocus(checkbox)
 
             setattr(self.w.scriptsBox, "checkbox_%s" % self.safeAttributeName(script), checkbox)
             self.scriptCheckboxes[script] = checkbox
@@ -438,6 +478,8 @@ class RemoveGlyphsSettings(object):
             "Remove glyphs settings",
             "Updated Remove Glyphs for %s." % self.instanceDisplayName(instance),
         )
+
+        self.focusInstancesList()
 
     def setRemoveGlyphsParameter(self, instance, lines):
         # Store as a list of lines - this is the native format
