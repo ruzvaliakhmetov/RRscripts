@@ -85,6 +85,18 @@ class RemoveGlyphsSettings(object):
         )
         self.w.applyButton.enable(False)
 
+        self.w.revertButton = vanilla.Button(
+            (
+                -margin - buttonWidth * 2 - buttonSpacing,
+                -(applyBottom + buttonHeight),
+                buttonWidth,
+                buttonHeight,
+            ),
+            "Revert",
+            callback=self.revertCallback,
+        )
+        self.w.revertButton.enable(False)
+
         self.w.closeButton = vanilla.Button(
             (-margin - buttonWidth, -(closeBottom + buttonHeight), buttonWidth, buttonHeight),
             "Close",
@@ -94,6 +106,7 @@ class RemoveGlyphsSettings(object):
         # Keep keyboard focus on the instances list so its selection
         # stays highlighted in the accent color instead of inactive gray.
         self.stopStealingFocus(self.w.applyButton)
+        self.stopStealingFocus(self.w.revertButton)
         self.stopStealingFocus(self.w.closeButton)
 
         self.buildScriptCheckboxes()
@@ -308,6 +321,17 @@ class RemoveGlyphsSettings(object):
 
     def setApplyEnabled(self, value):
         self.w.applyButton.enable(bool(value))
+        self.w.revertButton.enable(bool(value))
+
+    def revertCallback(self, sender):
+        # Restore checkboxes to the last loaded/applied state
+        # of the selected instance.
+        for script, checkbox in self.scriptCheckboxes.items():
+            checkbox.set(bool(self.currentCheckboxStates.get(script)))
+
+        self.isDirty = False
+        self.setApplyEnabled(False)
+        self.focusInstancesList()
 
     # -------------------------
     # Remove Glyphs parsing
