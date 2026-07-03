@@ -17,12 +17,15 @@ The scripts are provided as-is. Some of them are polished enough for regular use
 | `export_SVG.py`                                      | Exports selected glyphs as SVG files with a 1000 × 1000 px artboard and selectable stroke line join / line cap settings.                          |
 | `export_variable_ttf_via_makefont.py`                | Exports a variable TTF through `fontmake` instead of the native Glyphs export. Useful for testing fontmake output and getting clearer error logs. |
 | `font_info.py`                                       | Fills selected Font Info fields with placeholder values and enables the `Use Typo Metrics` custom parameter.                                      |
+| `get_scripts.py` | Prints all scripts used in the current font to the Macro Panel as `script=...` lines. Useful for checking script names before setting up `Remove Glyphs` rules. |
 | `insert_spaces.py`                                   | Creates or updates common space glyphs and assigns their widths across masters.                                                                   |
 | `move_selected.py`                                   | Moves selected glyphs, or all glyphs in the current master, by a specified X/Y offset.                                                            |
 | `move_to_background.py`                              | Moves all foreground shapes and hints to the background layer.                                                                                    |
 | `scale_intersect.py`                                 | Scales paths that intersect with shapes in the background layer.                                                                                  |
 | `script_export_native.py`                            | Exports selected scripts through the native Glyphs export. Checked scripts are kept; all other scripts are added to `Remove Glyphs`.              |
 | `script_export_via_makefont.py`                      | Exports selected scripts through `fontmake`. Useful for script-specific OTF/TTF exports and clearer build logs outside the native Glyphs export.   |
+| `remove_scripts_settings.py`                         | Opens a floating UI for active export instances and lets you choose which scripts to keep. Unchecked scripts are written to each instance’s `Remove Glyphs` custom parameter while preserving manual non-script rules. |
+
 
 
 ## Requirements
