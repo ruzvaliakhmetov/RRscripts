@@ -191,7 +191,7 @@ class ExportScriptSets(object):
 
         self.w.renameCheckbox = vanilla.CheckBox(
             (margin, y, -margin, lineHeight),
-            "Append set name to family name (Unique Armenian)",
+            "Append set name to family name (MyFont Armenian)",
             value=True,
         )
         y += lineHeight + 16
@@ -355,6 +355,37 @@ class ExportScriptSets(object):
         except Exception:
             print("Could not set family name %s" % name)
 
+    def setInstanceProperty(self, instance, propertyName, value):
+        try:
+            instance.setProperty_value_languageTag_(propertyName, value, None)
+            return True
+        except Exception:
+            return False
+
+    def applySetNaming(self, exportInstance, originalInstance, setName):
+        # Explicit Full Names / Font Name overrides on the original
+        # instance would otherwise survive the family rename and cause
+        # name clashes between sets (e.g. every set exporting
+        # MyFont-Medium). Rewrite the whole naming trio consistently.
+        styleName = originalInstance.name or "Regular"
+        familyName = "%s %s" % (self.baseFamilyName(originalInstance), setName)
+
+        self.setInstanceFamilyName(exportInstance, familyName)
+
+        fullName = "%s %s" % (familyName, styleName)
+        self.setInstanceProperty(exportInstance, "fullNames", fullName)
+
+        postscriptName = "%s-%s" % (
+            familyName.replace(" ", ""),
+            styleName.replace(" ", ""),
+        )
+
+        if not self.setInstanceProperty(exportInstance, "postscriptFontName", postscriptName):
+            try:
+                exportInstance.fontName = postscriptName
+            except Exception:
+                print("Could not set font name %s" % postscriptName)
+
     # -------------------------
     # Export
     # -------------------------
@@ -465,10 +496,11 @@ class ExportScriptSets(object):
         removeLines = manualLines + ["script=%s" % s for s in scriptsToRemove]
         exportInstance.customParameters[PARAM_NAME] = removeLines
 
-        # Family name: "Unique" for LGC, "Unique Armenian" for sets.
+        # Family name: "MyFont" for LGC, "MyFont Armenian" for sets.
+        # Full Names and Font Name are rewritten too, so explicit
+        # overrides from the original instance can't leak through.
         if self.w.renameCheckbox.get() and setScript:
-            familyName = "%s %s" % (self.baseFamilyName(instance), setName)
-            self.setInstanceFamilyName(exportInstance, familyName)
+            self.applySetNaming(exportInstance, instance, setName)
 
         try:
             result = exportInstance.generate(
