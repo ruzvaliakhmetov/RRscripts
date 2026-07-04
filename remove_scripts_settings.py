@@ -4,9 +4,16 @@
 from GlyphsApp import Glyphs
 import vanilla
 
+try:
+    from AppKit import NSViewWidthSizable
+except ImportError:
+    NSViewWidthSizable = 2
+
 
 PARAM_NAME = "Remove Glyphs"
 DEFAULT_LANGUAGE_TAG = "dflt"
+
+CHECKBOX_ROW_HEIGHT = 28
 
 
 class RemoveGlyphsSettings(object):
@@ -74,9 +81,29 @@ class RemoveGlyphsSettings(object):
         closeBottom = margin
         applyBottom = closeBottom + buttonHeight + buttonSpacing
 
-        self.w.scriptsBox = vanilla.Group(
-            (300, listTop, -margin, -(applyBottom + buttonHeight + 12))
+        # The checkboxes live in a fixed-height group that becomes
+        # the document view of a scroll view. When the list of scripts
+        # is taller than the visible area, a scrollbar appears instead
+        # of silently clipping the checkboxes.
+        groupHeight = max(len(self.scripts) * CHECKBOX_ROW_HEIGHT, CHECKBOX_ROW_HEIGHT)
+        self.scriptsGroup = vanilla.Group((0, 0, 280, groupHeight))
+
+        self.buildScriptCheckboxes()
+
+        self.w.scriptsScroll = vanilla.ScrollView(
+            (300, listTop, -margin, -(applyBottom + buttonHeight + 12)),
+            self.scriptsGroup.getNSView(),
+            drawsBackground=False,
+            hasHorizontalScroller=False,
+            autohidesScrollers=True,
         )
+
+        # Let the checkbox group track the width of the scroll view
+        # when the window is resized.
+        try:
+            self.scriptsGroup.getNSView().setAutoresizingMask_(NSViewWidthSizable)
+        except Exception:
+            pass
 
         self.w.applyButton = vanilla.Button(
             (-margin - buttonWidth, -(applyBottom + buttonHeight), buttonWidth, buttonHeight),
@@ -109,12 +136,11 @@ class RemoveGlyphsSettings(object):
         self.stopStealingFocus(self.w.revertButton)
         self.stopStealingFocus(self.w.closeButton)
 
-        self.buildScriptCheckboxes()
-
         self.w.instancesList.setSelection([0])
         self.loadInstanceState()
 
         self.w.open()
+        self.scrollScriptsToTop()
         self.focusInstancesList()
 
     # -------------------------
@@ -247,22 +273,37 @@ class RemoveGlyphsSettings(object):
         except Exception:
             pass
 
+    def scrollScriptsToTop(self):
+        # Make sure the scroll view starts at the top of the list.
+        try:
+            docView = self.scriptsGroup.getNSView()
+            if docView.isFlipped():
+                docView.scrollPoint_((0, 0))
+            else:
+                docView.scrollPoint_((0, docView.frame().size.height))
+        except Exception:
+            pass
+
     def buildScriptCheckboxes(self):
         y = 0
 
         for script in self.scripts:
             checkbox = vanilla.CheckBox(
-                (0, y, -0, 24),
+                (8, y, -8, 24),
                 self.prettyScriptName(script),
                 value=False,
                 callback=self.checkboxChanged,
             )
             self.stopStealingFocus(checkbox)
 
-            setattr(self.w.scriptsBox, "checkbox_%s" % self.safeAttributeName(script), checkbox)
+            setattr(
+                self.scriptsGroup,
+                "checkbox_%s" % self.safeAttributeName(script),
+                checkbox,
+            )
             self.scriptCheckboxes[script] = checkbox
 
-            y += 28
+            y += CHECKBOX_ROW_HEIGHT
 
     def safeAttributeName(self, text):
         safe = []
